@@ -27,20 +27,20 @@ distMatrix_r = fs_r.getNode("distort_coefficients")
 
 # Undistort left image
 h, w = gray_l.shape[:2]
-newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cameraMatrix_l.mat(), distMatrix_l.mat(), (w, h), 1, (w, h))
-mapx, mapy = cv2.initUndistortRectifyMap(cameraMatrix_l.mat(), distMatrix_l.mat(), None, newcameramtx, (w, h), 5)
-dst = cv2.remap(img_l, mapx, mapy, cv2.INTER_LINEAR)
-x, y, w, h = roi
-gray_l = dst[y:y + h, x:x + w]
+#newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cameraMatrix_l.mat(), distMatrix_l.mat(), (w, h), 1, (w, h))
+mapx, mapy = cv2.initUndistortRectifyMap(cameraMatrix_l.mat(), distMatrix_l.mat(), None, cameraMatrix_l.mat(), (w, h), 5)
+gray_l = cv2.remap(img_l, mapx, mapy, cv2.INTER_LINEAR)
+#x, y, w, h = roi
+#gray_l = dst[y:y + h, x:x + w]
 #cv2.imwrite(r'../../output/task_7/l_distort.png', dst)
 
 # Undistort right image
 h, w = gray_r.shape[:2]
-newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cameraMatrix_r.mat(), distMatrix_r.mat(), (w, h), 1, (w, h))
-mapx, mapy = cv2.initUndistortRectifyMap(cameraMatrix_r.mat(), distMatrix_r.mat(), None, newcameramtx, (w, h), 5)
-dst = cv2.remap(img_l, mapx, mapy, cv2.INTER_LINEAR)
-x, y, w, h = roi
-gray_r = dst[y:y + h, x:x + w]
+#newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cameraMatrix_r.mat(), distMatrix_r.mat(), (w, h), 1, (w, h))
+mapx, mapy = cv2.initUndistortRectifyMap(cameraMatrix_r.mat(), distMatrix_r.mat(), None, cameraMatrix_r.mat(), (w, h), 5)
+gray_r = cv2.remap(img_l, mapx, mapy, cv2.INTER_LINEAR)
+#x, y, w, h = roi
+#gray_r = dst[y:y + h, x:x + w]
 #cv2.imwrite(r'../../output/task_7/r_distort.png', dst)
 
 
@@ -156,7 +156,7 @@ for pt_idx in range(len(pts_l)):
     kp_l.append(cv2.KeyPoint(pts_l[pt_idx][0], pts_l[pt_idx][1], 0, 0))
     kp_r.append(cv2.KeyPoint(pts_r[pt_idx][0], pts_r[pt_idx][1], 0, 0))
 img5 = cv2.drawMatches(gray_l, kp_l, gray_r, kp_r, matches, img_l)
-plt.imshow(img5);plt.show()
+plt.imsave("../../output/task_7/essential_matches.png", img5)
 
 '''
 lines = cv2.computeCorrespondEpilines(pts_l.reshape(-1, 1, 2), 2, F)
