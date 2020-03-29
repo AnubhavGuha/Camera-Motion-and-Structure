@@ -3,11 +3,12 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import operator
 
 
-img_l = cv2.imread('../../images/task_7/left_0.png')
-img_r = cv2.imread('../../images/task_7/left_7.png')
+img_l = cv2.imread('../../images/task_7/left_2.png')
+img_r = cv2.imread('../../images/task_7/left_5.png')
 
 images = []
 images.append(img_l)
@@ -29,7 +30,7 @@ distMatrix_r = fs_r.getNode("distort_coefficients")
 h, w = gray_l.shape[:2]
 #newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cameraMatrix_l.mat(), distMatrix_l.mat(), (w, h), 1, (w, h))
 mapx, mapy = cv2.initUndistortRectifyMap(cameraMatrix_l.mat(), distMatrix_l.mat(), None, cameraMatrix_l.mat(), (w, h), 5)
-gray_l = cv2.remap(img_l, mapx, mapy, cv2.INTER_LINEAR)
+gray_l = cv2.remap(img_r, mapx, mapy, cv2.INTER_LINEAR)
 #x, y, w, h = roi
 #gray_l = dst[y:y + h, x:x + w]
 #cv2.imwrite(r'../../output/task_7/l_distort.png', dst)
@@ -169,4 +170,52 @@ plt.imshow(img5);plt.show()
 ret, R, t, mask1 = cv2.recoverPose(E, pts_l, pts_r)
 
 # step 5: Check the reconstruction results
+# calculate two transform matrix, which is [I|0] and [R|t]
+I = np.eye(3)
+projMatrix_l = np.c_[I, np.zeros(3)]
+# print(projMatrix1)
+projMatrix_r = np.c_[R, t]
+# print(projMatrix2)
 
+# get undistorted points
+undist_l = cv2.undistortPoints(pts_l, I, np.zeros(5))
+undist_r = cv2.undistortPoints(pts_r, I, np.zeros(5))
+
+# calculate 4D points
+points4D = cv2.triangulatePoints(projMatrix_l, projMatrix_r, undist_l, undist_r)
+points4D = [c / points4D[3] for c in points4D]
+# print(points4D)
+
+# show projection in 3D
+show_points_3D_l = [[0, 0, 0], [0.01, 0.01, 0.001], [0.01, -0.01, 0.001], [-0.01, -0.01, 0.001], [-0.01, 0.01, 0.001]]
+show_points_3D_r = []
+RTt = np.dot(np.transpose(R), t).transpose()
+# print("RTt: ", RTt)
+for point in show_points_3D_l:
+    point_r = np.dot(np.transpose(R), point) - RTt
+    show_points_3D_r.append(point_r)
+    # print("Point_r: ", point_r)
+
+square_l = show_points_3D_l
+square_l.append(show_points_3D_l[1])
+square_r = show_points_3D_r
+square_r.append(show_points_3D_r[1])
+square_l = np.transpose(square_l[1:6])
+square_r = np.transpose(square_r[1:6])
+
+line1_l = np.transpose([show_points_3D_l[1], show_points_3D_l[0], show_points_3D_l[2]])
+line2_l = np.transpose([show_points_3D_l[3], show_points_3D_l[0], show_points_3D_l[4]])
+line1_r = np.transpose([show_points_3D_r[1], show_points_3D_r[0], show_points_3D_r[2]])
+line2_r = np.transpose([show_points_3D_r[3], show_points_3D_r[0], show_points_3D_r[4]])
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+Axes3D.scatter(ax, points4D[0], points4D[1], points4D[2])
+Axes3D.plot(ax, square_l[0].flatten(), square_l[1].flatten(), square_l[2].flatten(), 'C1')
+Axes3D.plot(ax, line1_l[0].flatten(), line1_l[1].flatten(), line1_l[2].flatten(), 'C1')
+Axes3D.plot(ax, line2_l[0].flatten(), line2_l[1].flatten(), line2_l[2].flatten(), 'C1')
+Axes3D.plot(ax, square_r[0].flatten(), square_r[1].flatten(), square_r[2].flatten(), 'C2')
+Axes3D.plot(ax, line1_r[0].flatten(), line1_r[1].flatten(), line1_r[2].flatten(), 'C2')
+Axes3D.plot(ax, line2_r[0].flatten(), line2_r[1].flatten(), line2_r[2].flatten(), 'C2')
+plt.show()
+plt.savefig("../../output/task_7/Projection_before_rectify.png")
