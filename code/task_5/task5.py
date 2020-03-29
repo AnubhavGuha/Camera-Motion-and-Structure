@@ -9,11 +9,12 @@ img_r = cv2.imread('../../images/task_5/right_0.png')
 
 objp = np.zeros((9 * 6, 3), np.float32)
 objp[:, :2] = np.mgrid[0:9, 0:6].T.reshape(-1, 2)
-print(objp)
+
+#print(type(objp))
 objpoints = []  # 2d point in real world space
 imgpoints = []  # 2d points in image plane.
 
-# print(objp)
+#print(objp)
 # gray_l = cv2.cvtColor(img_l, cv2.COLOR_BGR2GRAY)
 # Loading parameters
 fs_l = cv2.FileStorage(
@@ -39,7 +40,8 @@ if ret:
     img = cv2.drawChessboardCorners(img_l, (9, 6), corners2, ret)
     #cv2.imwrite(r'../../output/task_5/l_calibrated.png', img)
     #cv2.imshow("Corners", img)
-    # cv2.waitKey(0)
+    #cv2.waitKey(0)
+    #print(corners)
 
 
 # Undistort left image
@@ -47,9 +49,9 @@ h, w = img_l.shape[:2]
 mapx, mapy = cv2.initUndistortRectifyMap(
     cameraMatrix_l.mat(), distMatrix_l.mat(), None, projMtx1.mat(), (w, h), 5)
 dst = cv2.remap(img_l, mapx, mapy, cv2.INTER_LINEAR)
-# print(img)
+#print(corners)
 #cv2.imshow("Undistort", dst)
-# cv2.waitKey(0)
+#cv2.waitKey(0)
 '''
 x, y, w, h = roi_1
 dst = dst[y:y + h, x:x + w]
@@ -57,7 +59,8 @@ cv2.imwrite(r'../../output/task_3/l_distort.png', dst)
 '''
 
 # Finding homography
-'''
-h, status = cv2.findHomography(dst, objp)
+
+h, status = cv2.findHomography(corners, objp)
 img_warp = cv2.warpPerspective(dst, h, (dst.shape[1], dst.shape[0]))
-'''
+cv2.imshow("Warp", img_warp)
+cv2.waitKey(0)
